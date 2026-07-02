@@ -1,0 +1,15 @@
+/.bundle/
+/vendor/bundle
+/pkg/
+/tmp/
+/coverage/
+/doc/
+/.yardoc
+
+# ライブラリ(gem)なので Gemfile.lock は追跡しない(rubygems 慣習)
+/Gemfile.lock
+
+*.gem
+*.rbc
+.ruby-version
+.DS_Store
