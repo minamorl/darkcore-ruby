@@ -1,5 +1,9 @@
 # darkcore
 
+[![ci](https://github.com/minamorl/darkcore-ruby/actions/workflows/ci.yml/badge.svg)](https://github.com/minamorl/darkcore-ruby/actions/workflows/ci.yml)
+![Ruby](https://img.shields.io/badge/ruby-%3E%3D%203.2-CC342D?logo=ruby&logoColor=white)
+![License](https://img.shields.io/badge/license-MIT-blue)
+
 モナド動物園 + **単一 Effect 型 (Freer monad)** の Ruby 実装。
 Python [minamorl/darkcore](https://github.com/minamorl/darkcore) の移植。
 
