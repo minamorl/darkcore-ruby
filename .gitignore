@@ -13,3 +13,7 @@
 *.rbc
 .ruby-version
 .DS_Store
+
+# Node (prettier tooling only)
+node_modules/
+package-lock.json
