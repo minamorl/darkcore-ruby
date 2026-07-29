@@ -60,6 +60,30 @@ Darkcore.fold(program, on_return: ->(x) { x.upcase }, handlers: record)
 `fold` / `run` are iterative (a `loop`), not recursive. A deep effect tree — even 100k nodes — never
 raises `SystemStackError`.
 
+## Stepping instead of running: `Darkcore.step`
+
+`fold` runs to completion, so a program cannot be paused part-way and picked up later. `step`
+advances the tree by exactly one node and interprets nothing, returning what the program is waiting
+on as data:
+
+| Result                          | Meaning                                                                           |
+| ------------------------------- | --------------------------------------------------------------------------------- |
+| `Done(value)`                   | The closed `:pure` effect was reached — this is the final value.                  |
+| `Pending(tag, payload, resume)` | The next effect to interpret. `resume.call(result)` returns the rest of the tree. |
+
+```ruby
+program = Darkcore.op(:ask, "name").bind { |name| Darkcore.op(:say, "hello #{name}") }
+
+state = Darkcore.step(program)
+state.tag                    # => :ask
+state.payload                # => "name"    (nothing has run)
+Darkcore.step(state.resume.call("mina")).payload # => "hello mina"
+```
+
+Because `Pending` is plain data, the caller becomes the scheduler: park a program on IO and yield to
+another fiber, inspect which effect an in-flight program is blocked on, or resume the same `Pending`
+more than once. `fold` is written as a loop over `step`, so the two can never drift apart.
+
 ## Design lineage
 
 This is exactly the shape of algebraic effects: `return` (purity) is folded into the effect

@@ -44,8 +44,8 @@ Darkcore.run(program, record) # => "hello TEST"  (no OS contact, deterministic)
 
 ## Documentation
 
-- [The Single Effect Type (Freer monad)](docs/effect-system.md) — how `pure`, `bind`, `fold` and
-  category selection work.
+- [The Single Effect Type (Freer monad)](docs/effect-system.md) — how `pure`, `bind`, `fold`, `step`
+  and category selection work.
 - [IO as tagged effects](docs/io-effects.md) — Category R (real OS) vs Category V (in-memory virtual
   world), and why ordinary IO comes out cleanly.
 - [The Monad Zoo](docs/monad-zoo.md) — Maybe / Result / Validation / Either / State, and why
