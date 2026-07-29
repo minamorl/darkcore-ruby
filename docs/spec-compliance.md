@@ -12,7 +12,7 @@ is a hard constraint the implementation must satisfy.
 | `api.no_operator_overload`                              | no operators defined; composition is `bind` / `fmap` / `ap`                    |
 | `api.bind_name = method_bind`                           | bind is the `bind` method                                                      |
 | `api.derive.from in [pure, bind]`                       | `Monad` derives `fmap` / `ap` from `pure` + `bind`                             |
-| `run.strategy = trampoline` / `no_naive_recursion`      | `fold` / `run` execute via a `loop` (iteration)                                |
+| `run.strategy = trampoline` / `no_naive_recursion`      | `fold` / `run` execute via a `loop` over `step` (iteration)                    |
 | `category.selection = handler_map`                      | swapping `handlers` in `run(program, handlers)` selects the category           |
 | `effect.dispatch = by_tag`                              | dispatch via `handlers.fetch(tag)`                                             |
 | `io.representation = tagged_effect` / `no_opaque_thunk` | IO is `Effect` data (tag/payload inspectable)                                  |

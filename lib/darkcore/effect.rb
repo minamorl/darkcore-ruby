@@ -46,7 +46,42 @@ module Darkcore
     def seq(nxt) = bind { |_| nxt }
   end
 
+  # ==================================================================
+  # step の戻り値 — 作用木が「いまどこにいるか」を表す検査可能なデータ。
+  #
+  #   Done(value)                    終端。閉じた :pure 作用に到達した。
+  #   Pending(tag, payload, resume)  次に解釈すべき作用。resume に結果を
+  #                                  渡すと続きの Effect 木が返る。
+  #
+  # Pending は作用を実行していない。tag も payload も handler へ渡す前の
+  # ただのデータなので、走らせずに覗ける。(spec: io.no_opaque_thunk)
+  # ==================================================================
+  Done = Data.define(:value)
+  Pending = Data.define(:tag, :payload, :resume)
+
   module_function
+
+  # ----------------------------------------------------------------
+  # step — 作用木を 1 歩だけ進める (fold の 1 ステップ版)。
+  #
+  # fold は終端まで走り切るので、作用の途中で止めて後で再開することが
+  # できない。step は解釈を一切せず、いま何を待っているかを Done /
+  # Pending として返すだけなので、呼び手の側がスケジューラになれる:
+  #
+  #   state = Darkcore.step(prog)
+  #   case state
+  #   when Darkcore::Done    then state.value
+  #   when Darkcore::Pending then state.resume.call(handle(state.tag, state.payload))
+  #   end
+  #
+  # これで IO 待ちで他のファイバへ譲る / 止まっている作用を覗く といった
+  # ことが handler を書かずにできる。fold は step の上に載っている。
+  # ----------------------------------------------------------------
+  def step(prog)
+    return Done.new(prog.payload) if prog.tag == :pure && prog.k.nil?
+
+    Pending.new(prog.tag, prog.payload, prog.k)
+  end
 
   # 閉じた作用 = pure / return。
   def pure(x) = Effect.pure(x)
@@ -82,14 +117,18 @@ module Darkcore
   # run.no_naive_recursion)
   #
   # 作用は tag でディスパッチする。(spec: effect.dispatch = by_tag)
+  #
+  # 本体は step の反復。「1 歩進める」と「走り切る」を分けてあるので、
+  # 途中で止めたい呼び手は step を直に回せばよい。
   # ----------------------------------------------------------------
   def fold(prog, on_return:, handlers:)
     cur = prog
     loop do
-      return on_return.call(cur.payload) if cur.tag == :pure && cur.k.nil?
+      state = step(cur)
+      return on_return.call(state.value) if state.is_a?(Done)
 
-      h = handlers.fetch(cur.tag) { raise KeyError, "no handler for effect: #{cur.tag.inspect}" }
-      cur = cur.k.call(h.call(cur.payload))
+      h = handlers.fetch(state.tag) { raise KeyError, "no handler for effect: #{state.tag.inspect}" }
+      cur = state.resume.call(h.call(state.payload))
     end
   end
 
